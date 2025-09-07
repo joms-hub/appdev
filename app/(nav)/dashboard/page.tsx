@@ -3,10 +3,9 @@ export const runtime = "nodejs";
 
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { PrismaClient } from "@/lib/generated/prisma";
+import { prisma } from "@/lib/prisma";
 import DashboardClient from "./DashboardClient";
 
-const prisma = new PrismaClient();
 
 export default async function DashboardPage() {
   const session = await auth();
