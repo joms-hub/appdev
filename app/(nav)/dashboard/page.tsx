@@ -34,12 +34,12 @@ export default async function DashboardPage() {
     overallProgress: Math.round(userRoadmap.overallProgress),
     totalActivities: userRoadmap.totalActivities,
     completedActivities: userRoadmap.phases.reduce(
-      (total, phase) => total + phase.activities.filter(activity => activity.completed).length,
+  (total: number, phase: { activities: { completed: boolean }[] }) => total + phase.activities.filter((activity: { completed: boolean }) => activity.completed).length,
       0
     ),
-    currentPhase: userRoadmap.phases.find(phase => phase.progress < 100) || userRoadmap.phases[userRoadmap.phases.length - 1],
+  currentPhase: userRoadmap.phases.find((phase: { progress: number }) => phase.progress < 100) || userRoadmap.phases[userRoadmap.phases.length - 1],
     totalPhases: userRoadmap.phases.length,
-    completedPhases: userRoadmap.phases.filter(phase => phase.progress === 100).length,
+  completedPhases: userRoadmap.phases.filter((phase: { progress: number }) => phase.progress === 100).length,
     estimatedDaysLeft: userRoadmap.totalDays - Math.floor(
       (userRoadmap.overallProgress / 100) * userRoadmap.totalDays
     ),
