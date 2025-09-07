@@ -144,11 +144,11 @@ export async function GET() {
         activities: phase.activities.map((activity: {
           id: string;
           name: string;
-          description?: string;
+          description?: string | null;
           type?: string;
           estimatedHours?: number;
           completed?: boolean;
-          completedAt?: Date;
+          completedAt?: Date | null;
         }) => ({
           id: activity.id,
           name: activity.name,

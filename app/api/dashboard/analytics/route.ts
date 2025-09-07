@@ -3,11 +3,11 @@ interface ActivityProgress {
   phaseId: string;
   activityIndex: number;
   name: string;
-  description?: string;
+  description?: string | null;
   type: string;
   estimatedHours: number;
   completed: boolean;
-  completedAt?: Date;
+  completedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
