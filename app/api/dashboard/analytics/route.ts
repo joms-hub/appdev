@@ -25,20 +25,6 @@ interface RoadmapPhase {
   activities: ActivityProgress[];
 }
 
-interface UserRoadmap {
-  id: string;
-  userId: string;
-  title: string;
-  description: string;
-  trackName: string;
-  difficulty: string;
-  totalDays: number;
-  totalActivities: number;
-  overallProgress: number;
-  createdAt: Date;
-  updatedAt: Date;
-  phases: RoadmapPhase[];
-}
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
