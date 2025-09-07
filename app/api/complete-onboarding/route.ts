@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import type { PrismaClient } from "../../../lib/generated/prisma";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
