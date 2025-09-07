@@ -127,7 +127,13 @@ export async function GET() {
       userTopics: [], // TODO: Fetch from user preferences
       confidenceLevel: 3.5, // TODO: Calculate from user preferences
       progress: roadmap.overallProgress,
-      phases: roadmap.phases.map(phase => ({
+      phases: roadmap.phases.map((phase: {
+        name: string;
+        description: string;
+        estimatedDays: number;
+        progress: number;
+        activities: { id: string; name: string }[];
+      }) => ({
         name: phase.name,
         description: phase.description,
         objectives: [], // TODO: Store in database or generate
@@ -135,7 +141,15 @@ export async function GET() {
         estimatedDays: phase.estimatedDays,
         prerequisites: [], // TODO: Store in database or generate
         progress: phase.progress,
-        activities: phase.activities.map(activity => ({
+        activities: phase.activities.map((activity: {
+          id: string;
+          name: string;
+          description?: string;
+          type?: string;
+          estimatedHours?: number;
+          completed?: boolean;
+          completedAt?: Date;
+        }) => ({
           id: activity.id,
           name: activity.name,
           description: activity.description || `${activity.type} activity`,
