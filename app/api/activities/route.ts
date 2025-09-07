@@ -38,7 +38,7 @@ export async function PATCH(request: NextRequest) {
 
     // Calculate phase progress
     const phaseActivities = updatedActivity.phase.activities;
-    const completedActivities = phaseActivities.filter(a => a.completed).length;
+  const completedActivities = phaseActivities.filter((a: { completed: boolean }) => a.completed).length;
     const phaseProgress = (completedActivities / phaseActivities.length) * 100;
 
     // Update phase progress
@@ -53,9 +53,9 @@ export async function PATCH(request: NextRequest) {
       include: { activities: true },
     });
 
-    const totalActivities = allPhases.reduce((sum, phase) => sum + phase.activities.length, 0);
+  const totalActivities = allPhases.reduce((sum: number, phase: { activities: { completed: boolean }[] }) => sum + phase.activities.length, 0);
     const totalCompleted = allPhases.reduce(
-      (sum, phase) => sum + phase.activities.filter(a => a.completed).length, 
+  (sum: number, phase: { activities: { completed: boolean }[] }) => sum + phase.activities.filter((a: { completed: boolean }) => a.completed).length, 
       0
     );
     const overallProgress = totalActivities > 0 ? (totalCompleted / totalActivities) * 100 : 0;
