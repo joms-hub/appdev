@@ -1,8 +1,6 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@/lib/generated/prisma";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -37,16 +35,16 @@ export async function GET() {
     }
 
     // Calculate comprehensive analytics
-    const allActivities = userRoadmap.phases.flatMap(phase => phase.activities);
-    const completedActivities = allActivities.filter(activity => activity.completed);
+  const allActivities = userRoadmap.phases.flatMap((phase: any) => phase.activities);
+  const completedActivities = allActivities.filter((activity: any) => activity.completed);
     const totalActivities = allActivities.length;
     const completionRate = totalActivities > 0 ? Math.round((completedActivities.length / totalActivities) * 100) : 0;
 
     // Calculate learning streak (consecutive days with completed activities)
     const completedDates = completedActivities
-      .filter(activity => activity.completedAt)
-      .map(activity => activity.completedAt!.toDateString())
-      .filter((date, index, arr) => arr.indexOf(date) === index) // Remove duplicates
+  .filter((activity: any) => activity.completedAt)
+  .map((activity: any) => activity.completedAt!.toDateString())
+  .filter((date: any, index: number, arr: any[]) => arr.indexOf(date) === index) // Remove duplicates
       .sort()
       .reverse();
 
@@ -73,33 +71,33 @@ export async function GET() {
     }
 
     // Get current phase info
-    const currentPhase = userRoadmap.phases.find(phase => phase.progress < 100) || userRoadmap.phases[userRoadmap.phases.length - 1];
+  const currentPhase = userRoadmap.phases.find((phase: any) => phase.progress < 100) || userRoadmap.phases[userRoadmap.phases.length - 1];
     const currentPhaseProgress = currentPhase?.progress || 0;
 
     // Get recent activities (last 5 completed)
     const recentActivities = completedActivities
-      .filter(activity => activity.completedAt)
-      .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime())
+      .filter((activity: any) => activity.completedAt)
+      .sort((a: any, b: any) => b.completedAt!.getTime() - a.completedAt!.getTime())
       .slice(0, 5)
-      .map(activity => ({
+      .map((activity: any) => ({
         name: activity.name,
         type: activity.type,
         completedAt: activity.completedAt,
-        phaseName: userRoadmap.phases.find(p => p.id === activity.phaseId)?.name || 'Unknown Phase'
+        phaseName: userRoadmap.phases.find((p: any) => p.id === activity.phaseId)?.name || 'Unknown Phase'
       }));
 
     // Get next upcoming activity
-    const nextActivity = allActivities.find(activity => !activity.completed);
+  const nextActivity = allActivities.find((activity: any) => !activity.completed);
     const upcomingActivity = nextActivity ? {
       name: nextActivity.name,
       type: nextActivity.type,
       estimatedHours: nextActivity.estimatedHours,
-      phaseName: userRoadmap.phases.find(p => p.id === nextActivity.phaseId)?.name || 'Unknown Phase'
+  phaseName: userRoadmap.phases.find((p: any) => p.id === nextActivity.phaseId)?.name || 'Unknown Phase'
     } : null;
 
     // Calculate estimated completion date
-    const remainingActivities = allActivities.filter(activity => !activity.completed);
-    const totalRemainingHours = remainingActivities.reduce((sum, activity) => sum + activity.estimatedHours, 0);
+  const remainingActivities = allActivities.filter((activity: any) => !activity.completed);
+  const totalRemainingHours = remainingActivities.reduce((sum: number, activity: any) => sum + activity.estimatedHours, 0);
     const estimatedDaysRemaining = Math.ceil(totalRemainingHours / 2); // Assuming 2 hours per day
     const estimatedCompletionDate = new Date();
     estimatedCompletionDate.setDate(estimatedCompletionDate.getDate() + estimatedDaysRemaining);
@@ -132,16 +130,16 @@ export async function GET() {
       estimatedDaysRemaining,
       
       // Time Analytics
-      totalEstimatedHours: allActivities.reduce((sum, activity) => sum + activity.estimatedHours, 0),
-      completedHours: completedActivities.reduce((sum, activity) => sum + activity.estimatedHours, 0),
+  totalEstimatedHours: allActivities.reduce((sum: number, activity: any) => sum + activity.estimatedHours, 0),
+  completedHours: completedActivities.reduce((sum: number, activity: any) => sum + activity.estimatedHours, 0),
       remainingHours: totalRemainingHours,
       
       // Activity Type Breakdown
       activityTypeBreakdown: {
-        projects: allActivities.filter(a => a.type === 'project').length,
-        quizzes: allActivities.filter(a => a.type === 'quiz').length,
-        exercises: allActivities.filter(a => a.type === 'exercise').length,
-        reading: allActivities.filter(a => a.type === 'reading').length,
+        projects: allActivities.filter((a: any) => a.type === 'project').length,
+        quizzes: allActivities.filter((a: any) => a.type === 'quiz').length,
+        exercises: allActivities.filter((a: any) => a.type === 'exercise').length,
+        reading: allActivities.filter((a: any) => a.type === 'reading').length,
       }
     };
 
