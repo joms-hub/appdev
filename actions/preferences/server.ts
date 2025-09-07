@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import type { PrismaClient } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -60,30 +61,28 @@ export async function saveUserPreferences(data: {
     }
 
     // Create user preferences in a transaction
-    await prisma.$transaction(async (tx) => {
-  return (tx as import("@prisma/client").PrismaClient).userPreferences.create({
+    await prisma.$transaction(async (tx: PrismaClient) => {
+      const userPreferences = await tx.userPreferences.create({
         data: {
           userId: session.user.id,
           trackId: validatedData.trackId,
         },
-      }).then((userPreferences) => {
-  return Promise.all([
-          tx.confidenceScore.createMany({
-            data: validatedData.confidence.map((score, index) => ({
-              preferencesId: userPreferences.id,
-              questionId: index + 1, // 1-based question IDs
-              score,
-            })),
-          }),
-          tx.userTopicInterest.createMany({
-            data: validatedData.topicIds.map((topicId) => ({
-              userId: session.user.id,
-              topicId,
-              preferencesId: userPreferences.id,
-            })),
-          })
-        ]);
       });
+      await tx.confidenceScore.createMany({
+        data: validatedData.confidence.map((score, index) => ({
+          preferencesId: userPreferences.id,
+          questionId: index + 1, // 1-based question IDs
+          score,
+        })),
+      });
+      await tx.userTopicInterest.createMany({
+        data: validatedData.topicIds.map((topicId) => ({
+          userId: session.user.id,
+          topicId,
+          preferencesId: userPreferences.id,
+        })),
+      });
+      return userPreferences;
     });
 
     // Force a token refresh by revalidating auth-related paths
@@ -104,85 +103,28 @@ export async function saveUserPreferences(data: {
  * Check if user has completed onboarding (for polling after save)
  */
 export async function checkOnboardingStatus(): Promise<{ completed: boolean }> {
-  try {
-    const session = await auth();
-    
-    if (!session?.user?.id) {
-      return { completed: false };
-    }
-
-    const preferences = await prisma.userPreferences.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    const completed = !!preferences;return { completed };
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") { console.error("Error checking onboarding status:", error); }
+  const session = await auth();
+  if (!session?.user?.id) {
     return { completed: false };
   }
+  const preferences = await prisma.userPreferences.findUnique({
+    where: { userId: session.user.id },
+  });
+  return { completed: !!preferences };
 }
 
 /**
  * Check if user has completed onboarding
  */
 export async function hasUserCompletedOnboarding(): Promise<boolean> {
-  try {
-    const session = await auth();
-    
-    if (!session?.user?.id) {
-      return false;
-    }
-
-    const preferences = await prisma.userPreferences.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    return !!preferences;
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") { console.error("Error checking onboarding status:", error); }
+  const session = await auth();
+  if (!session?.user?.id) {
     return false;
   }
-}
-
-/**
- * Get user preferences with confidence scores in array format (for backward compatibility)
- */
-export async function getUserPreferencesWithArrayScores() {
-  try {
-    const session = await auth();
-    
-    if (!session?.user?.id) {
-      return null;
-    }
-
-    const preferences = await prisma.userPreferences.findUnique({
-      where: { userId: session.user.id },
-      include: {
-        track: true,
-        confidenceScores: {
-          orderBy: { questionId: "asc" },
-        },
-        topicInterests: {
-          include: {
-            topic: true,
-          },
-        },
-      },
-    });
-
-    if (!preferences) return null;
-
-    // Convert confidence scores to array format for backward compatibility
-    const confidenceArray = confidenceScoresToArray(preferences.confidenceScores);
-
-    return {
-      ...preferences,
-      confidence: confidenceArray, // Add array format
-    };
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") { console.error("Error fetching user preferences:", error); }
-    return null;
-  }
+  const preferences = await prisma.userPreferences.findUnique({
+    where: { userId: session.user.id },
+  });
+  return !!preferences;
 }
 export async function getUserPreferences() {
   try {

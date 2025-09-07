@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import type { PrismaClient } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
@@ -51,32 +52,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user preferences in a transaction
-    await prisma.$transaction(async (tx) => {
-      // Create user preferences
-  return (tx as import("@prisma/client").PrismaClient).userPreferences.create({
-          data: {
-            userId: session.user.id,
-            trackId: validatedData.trackId,
-          },
-        }).then((userPreferences) => {
-          return Promise.all([
-            tx.confidenceScore.createMany({
-              data: validatedData.confidence.map((score, index) => ({
-                preferencesId: userPreferences.id,
-                questionId: index + 1, // 1-based question IDs
-                score,
-              })),
-            }),
-            tx.userTopicInterest.createMany({
-              data: validatedData.topicIds.map((topicId) => ({
-                userId: session.user.id,
-                topicId,
-                preferencesId: userPreferences.id,
-              })),
-            })
-          ]);
-        });
-    });// Force revalidation
+    await prisma.$transaction(async (tx: PrismaClient) => {
+      const userPreferences = await tx.userPreferences.create({
+        data: {
+          userId: session.user.id,
+          trackId: validatedData.trackId,
+        },
+      });
+      await tx.confidenceScore.createMany({
+        data: validatedData.confidence.map((score, index) => ({
+          preferencesId: userPreferences.id,
+          questionId: index + 1, // 1-based question IDs
+          score,
+        })),
+      });
+      await tx.userTopicInterest.createMany({
+        data: validatedData.topicIds.map((topicId) => ({
+          userId: session.user.id,
+          topicId,
+          preferencesId: userPreferences.id,
+        })),
+      });
+      return userPreferences;
+    });
+    // Force revalidation
     revalidatePath("/dashboard");
     revalidatePath("/track-selection");
     revalidatePath("/");
@@ -92,7 +91,6 @@ export async function POST(request: NextRequest) {
     response.headers.set('X-Refresh-Session', 'true');
     
     return response;
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: "Invalid input data" }, { status: 400 });
