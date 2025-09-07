@@ -61,30 +61,28 @@ export async function saveUserPreferences(data: {
 
     // Create user preferences in a transaction
     await prisma.$transaction(async (tx) => {
-      // Create user preferences
-      const userPreferences = await tx.userPreferences.create({
+  return (tx as import("@prisma/client").PrismaClient).userPreferences.create({
         data: {
           userId: session.user.id,
           trackId: validatedData.trackId,
         },
-      });
-
-      // Create confidence scores
-      await tx.confidenceScore.createMany({
-        data: validatedData.confidence.map((score, index) => ({
-          preferencesId: userPreferences.id,
-          questionId: index + 1, // 1-based question IDs
-          score,
-        })),
-      });
-
-      // Create topic interests
-      await tx.userTopicInterest.createMany({
-        data: validatedData.topicIds.map((topicId) => ({
-          userId: session.user.id,
-          topicId,
-          preferencesId: userPreferences.id,
-        })),
+      }).then((userPreferences) => {
+  return Promise.all([
+          tx.confidenceScore.createMany({
+            data: validatedData.confidence.map((score, index) => ({
+              preferencesId: userPreferences.id,
+              questionId: index + 1, // 1-based question IDs
+              score,
+            })),
+          }),
+          tx.userTopicInterest.createMany({
+            data: validatedData.topicIds.map((topicId) => ({
+              userId: session.user.id,
+              topicId,
+              preferencesId: userPreferences.id,
+            })),
+          })
+        ]);
       });
     });
 
