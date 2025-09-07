@@ -1,0 +1,13 @@
+name: Keep Neon Warm
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # every 10 minutes UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping keep-alive endpoint
+        run: curl -s https://appdev-rouge.vercel.app/api/keep-alive
