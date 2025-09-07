@@ -13,6 +13,7 @@ async function main() {
     { name: "DevOps", description: "Infrastructure, deployment, and system administration" },
   ];
 
+  // Trigger redeploy //
   console.log("Seeding tracks...");
   const createdTracks: { [key: string]: number } = {};
   
