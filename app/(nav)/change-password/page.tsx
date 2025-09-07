@@ -11,5 +11,5 @@ export default async function ChangePasswordPage() {
     redirect("/login");
   }
 
-  return <ChangePasswordClient />;
+  return ;
 }
