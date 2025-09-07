@@ -1,13 +1,12 @@
-import { NextAuthConfig } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 
-export const authOptions: NextAuthConfig = {
+export const authOptions: NextAuthOptions = {
   secret: process.env.AUTH_SECRET,
-  trustHost: true, // Required for Vercel deployments
   adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({
