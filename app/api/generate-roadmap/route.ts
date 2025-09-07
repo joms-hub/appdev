@@ -43,7 +43,7 @@ export async function POST() {
 
     // Calculate average confidence score
     const avgConfidence = userPreferences.confidenceScores.reduce(
-      (sum, score) => sum + score.score,
+  (sum: number, score: { score: number }) => sum + score.score,
       0
     ) / userPreferences.confidenceScores.length;
 
@@ -56,7 +56,7 @@ export async function POST() {
 
     const difficultyLevel = getDifficultyLevel(avgConfidence);
     const interestedTopics = userPreferences.topicInterests.map(
-      (interest) => interest.topic.name
+  (interest: { topic: { name: string } }) => interest.topic.name
     );
 
     // Create OpenAI prompt
